@@ -1,0 +1,173 @@
+---
+title: "Exploring rtweet"
+output: 
+  html_document:
+     toc: true
+     toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  collapse = TRUE,
+  comment = "#>",
+  out.width = "100%"
+  )
+
+library(tidyverse)
+library(magick)
+library(rtweet)
+library(here)
+```
+
+## Machine learning flashcards
+Looking for a way to reinforce machine learning concepts, I happened upon the Chris Albon's [Machine Learning Flashcards](https://machinelearningflashcards.com/) on Twitter. And, after reading the accompanying website, I noticed that Chris links to [a Python repo](https://github.com/Dpananos/GetCards) that scrapes the images from Chris's Twitter feed. I thought I would try to do the same using R so here we go:
+
+### Pull tweets and inspect the output
+First, we have a go at pulling tweets from Chris's feed via `rtweet`:
+
+```{r}
+albon_tweets <- get_timeline(user = "chrisalbon", n = 3200)  # max return value
+head(albon_tweets)
+```
+
+Okay, after reading Twitter's standard search API [documentation](https://developer.twitter.com/en/docs/tweets/search/overview/standard) we see that the standard search API will only return a sampling of the user's Tweets published in the past **7 days**. So, we will be retrieving just a sample of Chris's handy flashcards.
+
+Also, there were nearly 90 variables returned so let's take a `glimpse` and zero in on what is essential for this specific task:
+
+```{r}
+glimpse(albon_tweets)
+```
+
+Right off the bat I see `machinelearningflashcards.com` under the `urls_url` column which will helpful in filtering the data. Additionally, `media_url` conveniently contains the flashcard image url. 
+
+I will be sure to grab those variables in addition to the Twitter handle and accompany text for reference. Using a series of `stringr` functions, I strip out the name of the flashcard from `text` to be used later on.
+
+Lastly, having a glance at the `flashcard_name` column shows that some flashcards are repeated. So, let's use `distinct` to keep only the unique records, noting the convenient `.keep_all = TRUE` argument to retain all columns of the dataframe.
+
+```{r}
+flash_df <- albon_tweets %>% 
+  select(screen_name, text, urls_url, media_url) %>% 
+  unnest(urls_url, .preserve = media_url) %>%
+  filter(str_detect(urls_url, "machinelearning"),    # keep tweets containing the flashcard url
+         !is.na(media_url)) %>%                      # drop any tweets lacking an image
+  unnest(media_url) %>% 
+  mutate(
+    flashcard_name = text %>% 
+      str_extract(".+?(?=\\shttps)") %>% 
+      str_to_lower() %>% 
+      str_replace_all("\\s", "-")
+    ) %>% 
+  distinct(flashcard_name, .keep_all = TRUE)
+
+flash_df
+```
+
+### Read and write the flashcards
+Now that we have the `flash_df` dataframe containing the image URLs and names, let's make a quick function to read and write the flashcard images using `magick` and then feed those parameters into `pwalk` to iterate through the flashcards that we identified above:
+
+```{r}
+grab_flash <- function(flash_url, flash_name, folder) {
+  flash_url %>% 
+    image_read() %>% 
+    image_write(here(folder, str_c(flash_name,".png")))
+}
+
+params <- list(pull(flash_df, media_url), pull(flash_df, flashcard_name)) 
+pwalk(params, ~grab_flash(.x, .y, "ml-flashcard-images"))
+list.files(here("ml-flashcard-images"))
+```
+
+## You draw an X how?!?!
+Trolling through [#rstats](https://twitter.com/hashtag/rstats) Twitter, I came across this tweet soliciting responses on how people draw an X:
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Also this is so interesting to me - which way do you draw an X? Colored line being the first stroke <a href="https://t.co/a0WTl8WT7P">pic.twitter.com/a0WTl8WT7P</a></p>&mdash; sixers smasey (@SMASEY) <a href="https://twitter.com/SMASEY/status/1086844761040924672?ref_src=twsrc%5Etfw">January 20, 2019</a></blockquote>
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+Interestingly, the original poster observed that: "General consensus is that Americans do 7 & 8 while UK does 5 & 6. Probably how we were taught." Is that the case? Let's see what the data say.
+
+### Pull responses and wrangle a tidy dataframe
+The standard search API only returns data from the previous 7 days which presents a problem as this tweet is from January 20, 2019. There is, however, a way forward using the [30-Day API](https://developer.twitter.com/en/docs/tweets/search/quick-start/premium-30-day) which requires one to register a developer account, a registered app, and a developer environment setup. [See here for a walkthrough of that process](https://rud.is/books/21-recipes/using-oauth-to-access-twitter-apis.html). Note that while we can still search for free, we are now constrained to 100 tweets per request with a cap of 250 requests per month.
+
+Digging into Twitter's historical data means that we will have to leave the simplicity of `rtweet` behind and roll our own function to pull data from the [30-Day API](https://developer.twitter.com/en/docs/tweets/search/quick-start/premium-30-day).
+
+```{r, eval=FALSE}
+pull_tweets <- function(url,                 # 30-day search stem
+                        dev_env,             # <YOUR_DEV_ENV_NAME>
+                        tkn,                 # <YOUR_BEARER_TOKEN> (see rtweet::bearer_token)
+                        search = NULL,       # search terms   
+                        start_date = NULL,   # <YYYYMMDDHHmm>
+                        stop_date = NULL,    # <YYYYMMDDHHmm>
+                        max_req = NULL       # integer to limit # of requests (250/month cap)
+                        ) {
+  # construct url
+  thirty_url <- str_c(url, dev_env, ".json")
+  
+  # inital call
+  res <- GET(thirty_url,
+             query = list(query = search, fromDate = start_date, toDate = stop_date),
+             add_headers(Authorization = tkn))
+  
+  out <- fromJSON(read_lines(res[["content"]]), flatten = TRUE) %>%
+    .[['results']] %>%
+    as_tibble() %>% 
+    select(created_at, id, place = place.full_name, country_code = place.country_code,
+           reply_to_status_id = in_reply_to_status_id, text)
+  
+  nxt_tkn <- fromJSON(read_lines(res[["content"]])) %>% .[['next']]
+  
+  output_init <- list(list(df = out, nxt = nxt_tkn))
+  print("initial_call")
+  
+  # collect tweets until `next` token unavailable
+  i <- 1
+  output_loop <- list()
+  
+  while (!is.null(nxt_tkn) && i <= max_req - 1) {
+    print(str_c("loop", i))
+
+    res <- GET(thirty_url,
+               query = list(query = search, fromDate = start_date, toDate = stop_date, `next` = nxt_tkn),
+               add_headers(Authorization = tkn))
+    
+    out <- fromJSON(read_lines(res[["content"]]), flatten = TRUE) %>%
+      .[['results']] %>%
+      as_tibble() %>% 
+      select(created_at, id, place = place.full_name, country_code = place.country_code,
+             reply_to_status_id = in_reply_to_status_id, text)
+    
+    nxt_tkn <- fromJSON(read_lines(res[["content"]])) %>% .[['next']]
+    
+    output_loop[[i]] <- list(df = out, nxt = nxt_tkn)
+    i <- i + 1
+  }
+  append(output_init, output_loop)
+}
+```
+
+Let's use `pull_tweets` to grab all responding tweets from the US and the UK. Boilerplate code is provided below should you wish to try using your own credentials.
+
+```{r, eval=FALSE}
+pull_tweets(url = "https://api.twitter.com/1.1/tweets/search/30day/",
+            dev_env = <YOUR_DEV_ENV_NAME>,
+            tkn = <YOUR_BEARER_TOKEN>,
+            search = "to:SMASEY place_country:US",  # `place_country:GB` for UK tweets
+            max_req = 10)  # set a limit on number of requests
+```
+
+Here we read in the data from `pull_tweets`; wrangle the output into a tidy dataframe; and, use some coarse `regex` to extract the answer which should be an integer from 1 to 9.
+
+```{r, eval=FALSE}
+fs::dir_ls(here("how-to-draw-x_data"),glob = "*.rds") %>% 
+  map(read_rds) %>%                # read in output files
+  map_depth(2, "df") %>%           # grab df inside each nested list
+  flatten() %>%                    # flatten resulting list of dfs
+  bind_rows() %>%                  # row-bind into single df
+  filter(str_detect(text, "@SMASEY\\shttps+", negate = TRUE)) %>% 
+  mutate(response = str_extract(str_to_lower(text), "\\d{1}")) %>% 
+  na.omit()
+```
+
+### Time to plot the data
+
+### Do Americans draw an X differently than they do in the UK?
