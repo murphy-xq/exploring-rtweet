@@ -13,9 +13,14 @@ knitr::opts_chunk$set(
   comment = "#>",
   out.width = "100%"
   )
+options(width = 110)
 
 library(tidyverse)
+library(forcats)
+library(ggridges)
+library(infer)
 library(magick)
+library(patchwork)
 library(rtweet)
 library(here)
 ```
@@ -66,7 +71,7 @@ flash_df
 ### Read and write the flashcards
 Now that we have the `flash_df` dataframe containing the image URLs and names, let's make a quick function to read and write the flashcard images using `magick` and then feed those parameters into `pwalk` to iterate through the flashcards that we identified above:
 
-```{r}
+```{r, eval=FALSE}
 grab_flash <- function(flash_url, flash_name, folder) {
   flash_url %>% 
     image_read() %>% 
@@ -81,10 +86,9 @@ list.files(here("ml-flashcard-images"))
 ## You draw an X how?!?!
 Trolling through [#rstats](https://twitter.com/hashtag/rstats) Twitter, I came across this tweet soliciting responses on how people draw an X:
 
-<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Also this is so interesting to me - which way do you draw an X? Colored line being the first stroke <a href="https://t.co/a0WTl8WT7P">pic.twitter.com/a0WTl8WT7P</a></p>&mdash; sixers smasey (@SMASEY) <a href="https://twitter.com/SMASEY/status/1086844761040924672?ref_src=twsrc%5Etfw">January 20, 2019</a></blockquote>
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+![](`r here("how-to-draw-x_data","how-to-draw-x_image.png")`){width=300px}
 
-Interestingly, the original poster observed that: "General consensus is that Americans do 7 & 8 while UK does 5 & 6. Probably how we were taught." Is that the case? Let's see what the data say.
+Interestingly, @SMASEY observed that: "General consensus is that Americans do 7 & 8 while UK does 5 & 6. Probably how we were taught." Is that the case? Let's see what the data say.
 
 ### Pull responses and wrangle a tidy dataframe
 The standard search API only returns data from the previous 7 days which presents a problem as this tweet is from January 20, 2019. There is, however, a way forward using the [30-Day API](https://developer.twitter.com/en/docs/tweets/search/quick-start/premium-30-day) which requires one to register a developer account, a registered app, and a developer environment setup. [See here for a walkthrough of that process](https://rud.is/books/21-recipes/using-oauth-to-access-twitter-apis.html). Note that while we can still search for free, we are now constrained to 100 tweets per request with a cap of 250 requests per month.
@@ -98,7 +102,7 @@ pull_tweets <- function(url,                 # 30-day search stem
                         search = NULL,       # search terms   
                         start_date = NULL,   # <YYYYMMDDHHmm>
                         stop_date = NULL,    # <YYYYMMDDHHmm>
-                        max_req = NULL       # integer to limit # of requests (250/month cap)
+                        max_req = NULL       # integer to limit requests (250/month cap)
                         ) {
   # construct url
   thirty_url <- str_c(url, dev_env, ".json")
@@ -155,19 +159,63 @@ pull_tweets(url = "https://api.twitter.com/1.1/tweets/search/30day/",
             max_req = 10)  # set a limit on number of requests
 ```
 
-Here we read in the data from `pull_tweets`; wrangle the output into a tidy dataframe; and, use some coarse `regex` to extract the answer which should be an integer from 1 to 9.
+Here we read in the data collected using `pull_tweets`; wrangle the output into a tidy dataframe; and, use some coarse `regex` to extract the answer which should be an integer between 1 and 8.
 
-```{r, eval=FALSE}
-fs::dir_ls(here("how-to-draw-x_data"),glob = "*.rds") %>% 
-  map(read_rds) %>%                # read in output files
-  map_depth(2, "df") %>%           # grab df inside each nested list
-  flatten() %>%                    # flatten resulting list of dfs
-  bind_rows() %>%                  # row-bind into single df
+```{r}
+tweets_df <- fs::dir_ls(here("how-to-draw-x_data"), glob = "*.rds") %>% 
+  map(read_rds) %>%       # read in output files
+  map_depth(2, "df") %>%  # grab df inside each nested list
+  flatten_dfr() %>%       # flatten list and row bind
   filter(str_detect(text, "@SMASEY\\shttps+", negate = TRUE)) %>% 
-  mutate(response = str_extract(str_to_lower(text), "\\d{1}")) %>% 
+  mutate(response = text %>% 
+           str_extract("\\s\\d{1}(?!\\d)") %>% 
+           str_squish()) %>% 
   na.omit()
 ```
 
 ### Time to plot the data
+In total, it looks like we grabbed `r nrow(tweets_df)` tweets: `r nrow(tweets_df[tweets_df$country_code == "US", ])` from the US and `r nrow(tweets_df[tweets_df$country_code == "GB", ])` from the UK. Let's take a quick look at the distribution of answer choices by country.
 
-### Do Americans draw an X differently than they do in the UK?
+```{r out.width="75%", fig.align="center"}
+# histograms
+ggplot(tweets_df, aes(x = as.numeric(response), fill = country_code)) + 
+  geom_histogram(binwidth = 1, color = "white") + 
+  geom_text(stat = 'count', aes(label = ..count.., vjust = -0.2)) + 
+  scale_x_continuous(breaks = seq(1, 8, 1)) + 
+  coord_cartesian(clip = "off") + 
+  facet_wrap(~country_code, nrow = 2) + 
+  theme_minimal(base_size = 10) + 
+  labs(x = "answer choice", y = "count") + 
+  guides(fill = FALSE, color = FALSE)
+```
+
+### Is country associated with how one draws an X?
+Okay, it is clear that 7 & 8 are the most popular answers in both countries followed by 5 & 6. Answer choices 1-4 are infrequent (fewer than ~4% of responses in both cases) in both countries as well. However, it is not clear what, if any, association does country have on the answer choice. 
+
+Let's use the `infer` package to run a chi-squared test of independence to investigate whether there is an association between one's country and answer choice, as @SMASEY suggested. The `infer` package's intuitive design makes it straightforward for us to: (1) calculate our chi-squared statistic; (2) simulate null distributions through permutation; (3) visualize our null distribution vis-à-vis the observed statistic; and, (4) calculate the proportion of replicates that had a chi-squared as or more extreme than the observed statistic.
+
+```{r out.width="75%", fig.align="center"}
+# use fct_lump() to put infrequent factor levels into "other"
+infer_df <- tweets_df %>% 
+  mutate(response_fct = fct_lump(response, prop = 0.05),
+         country_code = factor(country_code))
+
+obs_chisq <- chisq_stat(infer_df, response_fct ~ country_code)
+obs_chisq
+
+null_distn <- infer_df %>% 
+  specify(response_fct ~ country_code) %>% 
+  hypothesize(null = "independence") %>%
+  generate(reps = 5000, type = "permute") %>%
+  calculate(stat = "Chisq")
+
+visualize(null_distn) + 
+  shade_p_value(obs_stat = obs_chisq, direction = "greater")
+```
+
+```{r}
+pval <- get_p_value(null_distn, obs_stat = obs_chisq, direction = "greater")
+pval
+```
+
+After simulating 5,000 null distributions and calculating chi-squares, we see that there is a `r str_c(pval * 100, "%")` chance of observing a chi-squared value at least as large as `r round(pull(obs_chisq, stat), 1)` in a world where there's no difference between `country` and `response`. So, that is fairly strong evidence in support of a significant association between one's country and how one draws an X.
