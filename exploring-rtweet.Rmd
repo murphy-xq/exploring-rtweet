@@ -1,9 +1,6 @@
 ---
 title: "Exploring rtweet"
-output: 
-  html_document:
-     toc: true
-     toc_depth: 2
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -80,7 +77,6 @@ grab_flash <- function(flash_url, flash_name, folder) {
 
 params <- list(pull(flash_df, media_url), pull(flash_df, flashcard_name)) 
 pwalk(params, ~grab_flash(.x, .y, "ml-flashcard-images"))
-list.files(here("ml-flashcard-images"))
 ```
 
 ## You draw an X how?!?!
@@ -189,10 +185,10 @@ ggplot(tweets_df, aes(x = as.numeric(ans), fill = country_code)) +
   guides(fill = FALSE, color = FALSE)
 ```
 
-### Is country associated with how one draws an X?
-Okay, it is clear that 7 & 8 are the most popular answers in both countries followed by 5 & 6. Answer choices 1-4 are infrequent (fewer than ~4% of responses in both cases) in both countries as well. However, it is not clear what, if any, association does country have on the answer choice. 
+### Is one's country associated with how one draws an X?
+Okay, it is clear that 7 & 8 are the most popular answers in both countries followed by 5 & 6. Answer choices 1-4 are infrequent (fewer than ~4% of responses in both cases) in both countries as well. However, it is not clear what, if any, association exists between country and answer choice. 
 
-Let's use the `infer` package to run a chi-squared test of independence to investigate whether there is an association between one's country and answer choice, as @SMASEY suggested. The `infer` package's intuitive design makes it straightforward for us to: (1) calculate our chi-squared statistic; (2) simulate a null distribution of chi-squared statistics through permutation; and, (3) calculate the proportion of replicates that had a chi-squared as or more extreme than the observed statistic and determine significance.
+Let's use the `infer` package to run a simulation-based test to investigate whether there is an association between one's country and answer choice. The `infer` package's intuitive design makes it straightforward for us to: (1) calculate our chi-squared statistic; (2) simulate a null distribution through permutation; and, (3) calculate the proportion of replicates that had a chi-squared as or more extreme than the observed statistic to determine significance.
 
 ```{r out.width="75%", fig.align="center"}
 # for reproducibility
@@ -203,7 +199,7 @@ infer_df <- tweets_df %>%
   mutate(ans_fct = fct_lump(ans, prop = 0.05), # use fct_lump() for infrequent factor levels
          country_code = factor(country_code))
 
-# calculate sample statistic
+# calculate test statistic
 obs_chisq <- chisq_stat(infer_df, ans_fct ~ country_code)
 obs_chisq
 
@@ -214,7 +210,7 @@ null_distn <- infer_df %>%
   generate(reps = 5000, type = "permute") %>%
   calculate(stat = "Chisq")
 
-# inspect observed statistic within null distribution
+# inspect test statistic within null distribution
 visualize(null_distn) + 
   shade_p_value(obs_stat = obs_chisq, direction = "greater")
 ```
