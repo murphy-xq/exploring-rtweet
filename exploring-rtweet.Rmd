@@ -82,7 +82,9 @@ pwalk(params, ~grab_flash(.x, .y, "ml-flashcard-images"))
 ## You draw an X how?!?!
 Trolling through [#rstats](https://twitter.com/hashtag/rstats) Twitter, I came across this tweet soliciting responses on how people draw an X:
 
-![](`r here("how-to-draw-x_data","how-to-draw-x_image.png")`){width=300px}
+```{r echo=FALSE, out.width = "40%"}
+knitr::include_graphics(here("how-to-draw-x_data","how-to-draw-x_image.png"))
+```
 
 Interestingly, @SMASEY observed that: "General consensus is that Americans do 7 & 8 while UK does 5 & 6. Probably how we were taught." Is that the case? Let's see what the data say.
 
@@ -172,7 +174,7 @@ tweets_df <- fs::dir_ls(here("how-to-draw-x_data"), glob = "*.rds") %>%
 ### Time to plot the data
 In total, it looks like we grabbed `r nrow(tweets_df)` tweets: `r nrow(tweets_df[tweets_df$country_code == "US", ])` from the US and `r nrow(tweets_df[tweets_df$country_code == "GB", ])` from the UK. Let's take a quick look at the distribution of answer choices by country.
 
-```{r out.width="75%", fig.align="center"}
+```{r, out.width="75%", fig.align="center"}
 # histograms
 ggplot(tweets_df, aes(x = as.numeric(ans), fill = country_code)) + 
   geom_histogram(binwidth = 1, color = "white") + 
@@ -190,7 +192,7 @@ Okay, it is clear that 7 & 8 are the most popular answers in both countries foll
 
 Let's use the `infer` package to run a simulation-based test to investigate whether there is an association between one's country and answer choice. The `infer` package's intuitive design makes it straightforward for us to: (1) calculate our chi-squared statistic; (2) simulate a null distribution through permutation; and, (3) calculate the proportion of replicates that had a chi-squared as or more extreme than the observed statistic to determine significance.
 
-```{r out.width="75%", fig.align="center"}
+```{r, out.width="75%", fig.align="center"}
 # for reproducibility
 set.seed(2)
 
