@@ -192,32 +192,37 @@ ggplot(tweets_df, aes(x = as.numeric(ans), fill = country_code)) +
 ### Is country associated with how one draws an X?
 Okay, it is clear that 7 & 8 are the most popular answers in both countries followed by 5 & 6. Answer choices 1-4 are infrequent (fewer than ~4% of responses in both cases) in both countries as well. However, it is not clear what, if any, association does country have on the answer choice. 
 
-Let's use the `infer` package to run a chi-squared test of independence to investigate whether there is an association between one's country and answer choice, as @SMASEY suggested. The `infer` package's intuitive design makes it straightforward for us to: (1) calculate our chi-squared statistic; (2) simulate null distributions through permutation; (3) visualize our null distribution vis-à-vis the observed statistic; and, (4) calculate the proportion of replicates that had a chi-squared as or more extreme than the observed statistic.
+Let's use the `infer` package to run a chi-squared test of independence to investigate whether there is an association between one's country and answer choice, as @SMASEY suggested. The `infer` package's intuitive design makes it straightforward for us to: (1) calculate our chi-squared statistic; (2) simulate a null distribution of chi-squared statistics through permutation; and, (3) calculate the proportion of replicates that had a chi-squared as or more extreme than the observed statistic and determine significance.
 
 ```{r out.width="75%", fig.align="center"}
-set.seed(2) # for reproducibility
+# for reproducibility
+set.seed(2)
 
-# use fct_lump() to put infrequent factor levels into "other"
+# set up df
 infer_df <- tweets_df %>% 
-  mutate(ans_fct = fct_lump(ans, prop = 0.05),
+  mutate(ans_fct = fct_lump(ans, prop = 0.05), # use fct_lump() for infrequent factor levels
          country_code = factor(country_code))
 
+# calculate sample statistic
 obs_chisq <- chisq_stat(infer_df, ans_fct ~ country_code)
 obs_chisq
 
+# generate null distribution
 null_distn <- infer_df %>% 
   specify(ans_fct ~ country_code) %>% 
   hypothesize(null = "independence") %>%
   generate(reps = 5000, type = "permute") %>%
   calculate(stat = "Chisq")
 
+# inspect observed statistic within null distribution
 visualize(null_distn) + 
   shade_p_value(obs_stat = obs_chisq, direction = "greater")
 ```
 
 ```{r}
+# grab p-value
 pval <- get_p_value(null_distn, obs_stat = obs_chisq, direction = "greater")
 pval
 ```
 
-After generating a simulation-based null distribution of chi-squared statistics, we see that there is a `r str_c(pval * 100, "%")` chance of observing a chi-squared value at least as large as `r round(pull(obs_chisq, stat), 1)` in a world where there's no difference between `country` and `response`. So, that is fairly strong evidence in support of a significant association between one's country and how one draws an X.
+After generating a simulation-based null distribution of chi-squared statistics, we see that there is a `r str_c(pval * 100, "%")` chance of observing a chi-squared value at least as large as `r round(pull(obs_chisq, stat), 1)` in a world where there's no difference between `country` and `response`. So, that is fairly strong evidence in support of a significant association between one's country (UK or US) and how one draws an X.
