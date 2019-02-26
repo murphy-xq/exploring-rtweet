@@ -82,8 +82,8 @@ pwalk(params, ~grab_flash(.x, .y, "ml-flashcard-images"))
 ## You draw an X how?!?!
 Trolling through [#rstats](https://twitter.com/hashtag/rstats) Twitter, I came across this tweet soliciting responses on how people draw an X:
 
-```{r echo=FALSE, out.width = "40%"}
-knitr::include_graphics(here("how-to-draw-x_data","how-to-draw-x_image.png"))
+```{r echo=FALSE, out.width="40%"}
+knitr::include_graphics("how-to-draw-x_data/how-to-draw-x_image.png")
 ```
 
 Interestingly, @SMASEY observed that: "General consensus is that Americans do 7 & 8 while UK does 5 & 6. Probably how we were taught." Is that the case? Let's see what the data say.
