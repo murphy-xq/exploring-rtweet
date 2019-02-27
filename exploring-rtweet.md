@@ -75,8 +75,8 @@ glimpse(albon_tweets)
 #> $ reply_to_screen_name    <chr> NA, NA, "MattGallagher0", NA, "ArmsControlWonk", "AthertonKD", "LibyaLibert…
 #> $ is_quote                <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE…
 #> $ is_retweet              <lgl> FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, …
-#> $ favorite_count          <int> 14, 0, 0, 100, 0, 4, 1, 0, 1, 1, 2, 2, 53, 10, 0, 0, 10, 30, 1, 16, 2, 2, 7…
-#> $ retweet_count           <int> 1, 44, 0, 10, 0, 0, 0, 71, 0, 0, 0, 0, 3, 1, 141, 3, 3, 10, 0, 1, 0, 0, 0, …
+#> $ favorite_count          <int> 18, 0, 0, 125, 0, 4, 1, 0, 1, 1, 2, 2, 55, 10, 0, 0, 11, 31, 1, 16, 2, 2, 7…
+#> $ retweet_count           <int> 1, 101, 0, 11, 0, 0, 0, 76, 0, 0, 0, 0, 4, 1, 167, 3, 3, 10, 0, 1, 0, 0, 0,…
 #> $ hashtags                <list> [NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
 #> $ symbols                 <list> [NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N…
 #> $ urls_url                <list> ["machinelearningflashcards.com", "twitter.com/ThingsCutInHaI…", NA, NA, N…
@@ -97,14 +97,14 @@ glimpse(albon_tweets)
 #> $ quoted_text             <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "Bill Maher says red state …
 #> $ quoted_created_at       <dttm> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 2019-02-23 14:46:44, NA, N…
 #> $ quoted_source           <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "SocialFlow", NA, NA, NA, "…
-#> $ quoted_favorite_count   <int> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 2554, NA, NA, NA, 1218, NA,…
-#> $ quoted_retweet_count    <int> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 766, NA, NA, NA, 310, NA, N…
+#> $ quoted_favorite_count   <int> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 2565, NA, NA, NA, 1378, NA,…
+#> $ quoted_retweet_count    <int> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 769, NA, NA, NA, 346, NA, N…
 #> $ quoted_user_id          <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "2884771", NA, NA, NA, "687…
 #> $ quoted_screen_name      <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "Newsweek", NA, NA, NA, "fc…
 #> $ quoted_name             <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "Newsweek", NA, NA, NA, "Fr…
-#> $ quoted_followers_count  <int> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 3318638, NA, NA, NA, 132907…
+#> $ quoted_followers_count  <int> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 3318876, NA, NA, NA, 133031…
 #> $ quoted_friends_count    <int> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 494, NA, NA, NA, 599, NA, N…
-#> $ quoted_statuses_count   <int> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 186316, NA, NA, NA, 11060, …
+#> $ quoted_statuses_count   <int> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 186443, NA, NA, NA, 11060, …
 #> $ quoted_location         <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "New York, NY", NA, NA, NA,…
 #> $ quoted_description      <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "Stay relevant. News and an…
 #> $ quoted_verified         <lgl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, TRUE, NA, NA, NA, TRUE, NA,…
@@ -112,14 +112,14 @@ glimpse(albon_tweets)
 #> $ retweet_text            <chr> NA, "applying for a data science job in 2010 vs. applying for a data scienc…
 #> $ retweet_created_at      <dttm> NA, 2019-02-26 16:28:08, NA, NA, NA, NA, NA, 2019-02-25 05:14:15, NA, NA, …
 #> $ retweet_source          <chr> NA, "Twitter Web App", NA, NA, NA, NA, NA, "Twitter for iPhone", NA, NA, NA…
-#> $ retweet_favorite_count  <int> NA, 211, NA, NA, NA, NA, NA, 366, NA, NA, NA, NA, NA, NA, 773, 27, NA, NA, …
-#> $ retweet_retweet_count   <int> NA, 44, NA, NA, NA, NA, NA, 71, NA, NA, NA, NA, NA, NA, 141, 3, NA, NA, NA,…
+#> $ retweet_favorite_count  <int> NA, 481, NA, NA, NA, NA, NA, 386, NA, NA, NA, NA, NA, NA, 899, 28, NA, NA, …
+#> $ retweet_retweet_count   <int> NA, 101, NA, NA, NA, NA, NA, 76, NA, NA, NA, NA, NA, NA, 167, 3, NA, NA, NA…
 #> $ retweet_user_id         <chr> NA, "47436444", NA, NA, NA, NA, NA, "1558406653", NA, NA, NA, NA, NA, NA, "…
 #> $ retweet_screen_name     <chr> NA, "jrmontag", NA, NA, NA, NA, NA, "EpiEllie", NA, NA, NA, NA, NA, NA, "ik…
 #> $ retweet_name            <chr> NA, "Josh Montague \U0001f4ca\U0001f389", NA, NA, NA, NA, NA, "Ellie Murray…
-#> $ retweet_followers_count <int> NA, 2934, NA, NA, NA, NA, NA, 4569, NA, NA, NA, NA, NA, NA, 1912, 6947, NA,…
-#> $ retweet_friends_count   <int> NA, 2617, NA, NA, NA, NA, NA, 1169, NA, NA, NA, NA, NA, NA, 782, 150, NA, N…
-#> $ retweet_statuses_count  <int> NA, 40327, NA, NA, NA, NA, NA, 12511, NA, NA, NA, NA, NA, NA, 9820, 2141, N…
+#> $ retweet_followers_count <int> NA, 2945, NA, NA, NA, NA, NA, 4582, NA, NA, NA, NA, NA, NA, 1915, 6947, NA,…
+#> $ retweet_friends_count   <int> NA, 2617, NA, NA, NA, NA, NA, 1170, NA, NA, NA, NA, NA, NA, 783, 150, NA, N…
+#> $ retweet_statuses_count  <int> NA, 40328, NA, NA, NA, NA, NA, 12524, NA, NA, NA, NA, NA, NA, 9823, 2142, N…
 #> $ retweet_location        <chr> NA, "Golden + Boulder (CO)", NA, NA, NA, NA, NA, "", NA, NA, NA, NA, NA, NA…
 #> $ retweet_description     <chr> NA, "counts \U0001f425\U0001f4ac, drinks \u2615️, takes \U0001f4f7, loves \…
 #> $ retweet_verified        <lgl> NA, FALSE, NA, NA, NA, NA, NA, FALSE, NA, NA, NA, NA, NA, NA, FALSE, FALSE,…
@@ -138,11 +138,11 @@ glimpse(albon_tweets)
 #> $ description             <chr> "Using data to fight for something that matters. Data science @DevotedHealt…
 #> $ url                     <chr> "https://t.co/CQhzAA24cn", "https://t.co/CQhzAA24cn", "https://t.co/CQhzAA2…
 #> $ protected               <lgl> FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE…
-#> $ followers_count         <int> 31782, 31782, 31782, 31782, 31782, 31782, 31782, 31782, 31782, 31782, 31782…
+#> $ followers_count         <int> 31795, 31795, 31795, 31795, 31795, 31795, 31795, 31795, 31795, 31795, 31795…
 #> $ friends_count           <int> 705, 705, 705, 705, 705, 705, 705, 705, 705, 705, 705, 705, 705, 705, 705, …
-#> $ listed_count            <int> 1346, 1346, 1346, 1346, 1346, 1346, 1346, 1346, 1346, 1346, 1346, 1346, 134…
+#> $ listed_count            <int> 1345, 1345, 1345, 1345, 1345, 1345, 1345, 1345, 1345, 1345, 1345, 1345, 134…
 #> $ statuses_count          <int> 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, 560, …
-#> $ favourites_count        <int> 10316, 10316, 10316, 10316, 10316, 10316, 10316, 10316, 10316, 10316, 10316…
+#> $ favourites_count        <int> 10315, 10315, 10315, 10315, 10315, 10315, 10315, 10315, 10315, 10315, 10315…
 #> $ account_created_at      <dttm> 2007-12-26 01:49:09, 2007-12-26 01:49:09, 2007-12-26 01:49:09, 2007-12-26 …
 #> $ verified                <lgl> TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRU…
 #> $ profile_url             <chr> "https://t.co/CQhzAA24cn", "https://t.co/CQhzAA24cn", "https://t.co/CQhzAA2…
@@ -347,33 +347,32 @@ ggplot(tweets_df, aes(x = as.numeric(ans), fill = country_code)) +
 
 <img src="exploring-rtweet_files/figure-gfm/unnamed-chunk-9-1.png" width="75%" style="display: block; margin: auto;" />
 
-### Is one’s country associated with how one draws an X?
+### Is location associated with how one draws an X?
 
 Okay, it is clear that 7 & 8 are the most popular answers in both
 countries followed by 5 & 6. Answer choices 1-4 are infrequent (fewer
-than ~4% of responses in both cases) in both countries as well. However,
-it is not clear what, if any, association exists between country and
-answer choice.
+than ~4% of responses in both cases). However, it is not clear what, if
+any, association exists between country and answer choice.
 
 Let’s use the `infer` package to run a simulation-based test to
-investigate whether there is an association between one’s country and
-answer choice. The `infer` package’s intuitive design makes it
-straightforward for us to: (1) calculate our chi-squared statistic; (2)
-simulate a null distribution through permutation; and, (3) calculate the
-proportion of replicates that had a chi-squared as or more extreme than
-the observed statistic to determine significance.
+investigate whether there is an association between location and answer
+choice. The `infer` package’s intuitive design makes it straightforward
+for us to: (1) calculate our chi-squared statistic; (2) simulate a null
+distribution through permutation; and, (3) calculate the proportion of
+replicates that had a chi-squared as or more extreme than the observed
+statistic to determine significance.
 
 ``` r
 # for reproducibility
 set.seed(2)
 
 # set up df
-infer_df <- tweets_df %>% 
+chisq_df <- tweets_df %>% 
   mutate(ans_fct = fct_lump(ans, prop = 0.05), # use fct_lump() for infrequent factor levels
          country_code = factor(country_code))
 
 # calculate test statistic
-obs_chisq <- chisq_stat(infer_df, ans_fct ~ country_code)
+obs_chisq <- chisq_stat(chisq_df, ans_fct ~ country_code)
 obs_chisq
 #> # A tibble: 1 x 1
 #>    stat
@@ -381,14 +380,14 @@ obs_chisq
 #> 1  24.4
 
 # generate null distribution
-null_distn <- infer_df %>% 
+null_dist_chisq <- chisq_df %>% 
   specify(ans_fct ~ country_code) %>% 
   hypothesize(null = "independence") %>%
-  generate(reps = 5000, type = "permute") %>%
+  generate(reps = 3000, type = "permute") %>%
   calculate(stat = "Chisq")
 
 # inspect test statistic within null distribution
-visualize(null_distn) + 
+visualize(null_dist_chisq) + 
   shade_p_value(obs_stat = obs_chisq, direction = "greater")
 ```
 
@@ -396,17 +395,89 @@ visualize(null_distn) +
 
 ``` r
 # grab p-value
-pval <- get_p_value(null_distn, obs_stat = obs_chisq, direction = "greater")
-pval
+pval_chisq <- get_p_value(null_dist_chisq, obs_stat = obs_chisq, direction = "greater")
+pval_chisq
 #> # A tibble: 1 x 1
-#>   p_value
-#>     <dbl>
-#> 1  0.0002
+#>    p_value
+#>      <dbl>
+#> 1 0.000333
 ```
 
 After generating a simulation-based null distribution of chi-squared
-statistics, we see that there is a 0.02% chance of observing a
+statistics, we see that there is a 0.03% chance of observing a
 chi-squared value at least as large as 24.4 in a world where there’s no
-difference between `country` and `response`. So, that is fairly strong
-evidence in support of a significant association between one’s country
-(UK or US) and how one draws an X.
+difference between `country` and `ans`. So, we observe strong evidence
+in support of a significant association between location and how one
+draws an X.
+
+### What about \# 7 & 8 being particularly American?
+
+Well, we’ve see that there is some association with how an X is drawn
+and location, so let’s be a bit more specific and tease apart this
+observation that 7 & 8 might be particularly American. To do this we
+will set up a dataframe with a collapsed factor variable for answers 7 &
+8, take a peak at the proportions of answers 7 & 8 by location, and then
+test any observed difference in proportions across countries.
+
+``` r
+# set up df
+props_df <- tweets_df %>% 
+  mutate(ans_clps = fct_collapse(ans,
+                                 one_six = c("1","2","3","4","5","6"),
+                                 svn_egt = c("7","8")),
+         country_code = factor(country_code))
+
+# calculate counts and proportions
+props_df %>% 
+  tabyl(country_code, ans_clps) %>% 
+  adorn_percentages("row") %>% 
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()
+#>  country_code    one_six     svn_egt
+#>            GB 33.9% (59) 66.1% (115)
+#>            US 17.3% (45) 82.7% (215)
+```
+
+We observe a difference of ~17 percentage points for answers 7 & 8
+between US and UK responses. Let’s employ the same `infer` workflow from
+before to implement a simulation-based test on this observed difference
+in proportions.
+
+``` r
+# for reproducibility
+set.seed(20)
+
+# calculate test statistic
+d_hat <- props_df %>% 
+  specify(ans_clps ~ country_code, success = "svn_egt") %>%
+  calculate(stat = "diff in props", order = c("US", "GB"))
+
+# generate null distribution
+null_dist_props <- props_df %>%
+  specify(ans_clps ~ country_code, success = "svn_egt") %>%
+  hypothesize(null = "independence") %>% 
+  generate(reps = 3000, type = "permute") %>% 
+  calculate(stat = "diff in props", order = c("US", "GB"))
+
+# inspect test statistic within null distribution
+visualize(null_dist_props) +
+  shade_p_value(obs_stat = d_hat, direction = "two_sided")
+```
+
+<img src="exploring-rtweet_files/figure-gfm/unnamed-chunk-13-1.png" width="75%" style="display: block; margin: auto;" />
+
+``` r
+# grab p-value
+pval_props <- get_p_value(null_dist_props, obs_stat = d_hat, direction = "two_sided")
+pval_props
+#> # A tibble: 1 x 1
+#>    p_value
+#>      <dbl>
+#> 1 0.000667
+```
+
+We see that there is a 0.07% chance of a test statistic at least as
+extreme as ±0.166 in a world where there is no difference in proportions
+by location. So, we observe strong evidence in support of a significant
+difference in responses of 7 & 8 by location, with a higher proportion
+of 7 & 8’s from the US.

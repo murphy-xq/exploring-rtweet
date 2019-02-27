@@ -16,6 +16,7 @@ library(tidyverse)
 library(forcats)
 library(ggridges)
 library(infer)
+library(janitor)
 library(magick)
 library(patchwork)
 library(rtweet)
@@ -187,40 +188,90 @@ ggplot(tweets_df, aes(x = as.numeric(ans), fill = country_code)) +
   guides(fill = FALSE, color = FALSE)
 ```
 
-### Is one's country associated with how one draws an X?
-Okay, it is clear that 7 & 8 are the most popular answers in both countries followed by 5 & 6. Answer choices 1-4 are infrequent (fewer than ~4% of responses in both cases) in both countries as well. However, it is not clear what, if any, association exists between country and answer choice. 
+### Is location associated with how one draws an X?
+Okay, it is clear that 7 & 8 are the most popular answers in both countries followed by 5 & 6. Answer choices 1-4 are infrequent (fewer than ~4% of responses in both cases). However, it is not clear what, if any, association exists between country and answer choice. 
 
-Let's use the `infer` package to run a simulation-based test to investigate whether there is an association between one's country and answer choice. The `infer` package's intuitive design makes it straightforward for us to: (1) calculate our chi-squared statistic; (2) simulate a null distribution through permutation; and, (3) calculate the proportion of replicates that had a chi-squared as or more extreme than the observed statistic to determine significance.
+Let's use the `infer` package to run a simulation-based test to investigate whether there is an association between location and answer choice. The `infer` package's intuitive design makes it straightforward for us to: (1) calculate our chi-squared statistic; (2) simulate a null distribution through permutation; and, (3) calculate the proportion of replicates that had a chi-squared as or more extreme than the observed statistic to determine significance.
 
 ```{r, out.width="75%", fig.align="center"}
 # for reproducibility
 set.seed(2)
 
 # set up df
-infer_df <- tweets_df %>% 
+chisq_df <- tweets_df %>% 
   mutate(ans_fct = fct_lump(ans, prop = 0.05), # use fct_lump() for infrequent factor levels
          country_code = factor(country_code))
 
 # calculate test statistic
-obs_chisq <- chisq_stat(infer_df, ans_fct ~ country_code)
+obs_chisq <- chisq_stat(chisq_df, ans_fct ~ country_code)
 obs_chisq
 
 # generate null distribution
-null_distn <- infer_df %>% 
+null_dist_chisq <- chisq_df %>% 
   specify(ans_fct ~ country_code) %>% 
   hypothesize(null = "independence") %>%
-  generate(reps = 5000, type = "permute") %>%
+  generate(reps = 3000, type = "permute") %>%
   calculate(stat = "Chisq")
 
 # inspect test statistic within null distribution
-visualize(null_distn) + 
+visualize(null_dist_chisq) + 
   shade_p_value(obs_stat = obs_chisq, direction = "greater")
 ```
 
 ```{r}
 # grab p-value
-pval <- get_p_value(null_distn, obs_stat = obs_chisq, direction = "greater")
-pval
+pval_chisq <- get_p_value(null_dist_chisq, obs_stat = obs_chisq, direction = "greater")
+pval_chisq
 ```
 
-After generating a simulation-based null distribution of chi-squared statistics, we see that there is a `r str_c(pval * 100, "%")` chance of observing a chi-squared value at least as large as `r round(pull(obs_chisq, stat), 1)` in a world where there's no difference between `country` and `response`. So, that is fairly strong evidence in support of a significant association between one's country (UK or US) and how one draws an X.
+After generating a simulation-based null distribution of chi-squared statistics, we see that there is a `r str_c(round(pval_chisq * 100, 2), "%")` chance of observing a chi-squared value at least as large as `r round(pull(obs_chisq, stat), 1)` in a world where there's no difference between `country` and `ans`. So, we observe strong evidence in support of a significant association between location and how one draws an X.
+
+### What about # 7 & 8 being particularly American?
+Well, we've see that there is some association with how an X is drawn and location, so let's be a bit more specific and tease apart this observation that 7 & 8 might be particularly American. To do this we will set up a dataframe with a collapsed factor variable for answers 7 & 8, take a peak at the proportions of answers 7 & 8 by location, and then test any observed difference in proportions across countries.
+
+```{r}
+# set up df
+props_df <- tweets_df %>% 
+  mutate(ans_clps = fct_collapse(ans,
+                                 one_six = c("1","2","3","4","5","6"),
+                                 svn_egt = c("7","8")),
+         country_code = factor(country_code))
+
+# calculate counts and proportions
+props_df %>% 
+  tabyl(country_code, ans_clps) %>% 
+  adorn_percentages("row") %>% 
+  adorn_pct_formatting(digits = 1) %>%
+  adorn_ns()
+```
+
+We observe a difference of ~17 percentage points for answers 7 & 8 between US and UK responses. Let's employ the same `infer` workflow from before to implement a simulation-based test on this observed difference in proportions.
+
+```{r, out.width="75%", fig.align="center"}
+# for reproducibility
+set.seed(20)
+
+# calculate test statistic
+d_hat <- props_df %>% 
+  specify(ans_clps ~ country_code, success = "svn_egt") %>%
+  calculate(stat = "diff in props", order = c("US", "GB"))
+
+# generate null distribution
+null_dist_props <- props_df %>%
+  specify(ans_clps ~ country_code, success = "svn_egt") %>%
+  hypothesize(null = "independence") %>% 
+  generate(reps = 3000, type = "permute") %>% 
+  calculate(stat = "diff in props", order = c("US", "GB"))
+
+# inspect test statistic within null distribution
+visualize(null_dist_props) +
+  shade_p_value(obs_stat = d_hat, direction = "two_sided")
+```
+
+```{r}
+# grab p-value
+pval_props <- get_p_value(null_dist_props, obs_stat = d_hat, direction = "two_sided")
+pval_props
+```
+
+We see that there is a `r str_c(round(pval_props * 100, 2), "%")` chance of a test statistic at least as extreme as ±`r round(pull(d_hat, stat), 3)` in a world where there is no difference in proportions by location. So, we observe strong evidence in support of a significant difference in responses of 7 & 8 by location, with a higher proportion of 7 & 8's from the US.
