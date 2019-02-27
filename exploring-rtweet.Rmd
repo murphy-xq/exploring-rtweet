@@ -110,29 +110,26 @@ pull_tweets <- function(url,                 # 30-day search stem
              add_headers(Authorization = tkn))
   
   out <- fromJSON(read_lines(res[["content"]]), flatten = TRUE) %>% .[['results']]
-  
   nxt_tkn <- fromJSON(read_lines(res[["content"]])) %>% .[['next']]
-  
   output_init <- list(list(df = out, nxt = nxt_tkn))
-  print("initial_call")
+  
+  print("call_1")
   
   # loop until max_req limit or `next` token unavailable
   i <- 1
   output_loop <- list()
   
-  while (!is.null(nxt_tkn) && i <= max_req) {
-    print(str_c("loop", i))
-    
+  while (!is.null(nxt_tkn) && i <= max_req - 1) {
     res <- GET(thirty_url,
                query = list(query = search, fromDate = start_date, toDate = stop_date, `next` = nxt_tkn),
                add_headers(Authorization = tkn))
     
     out <- fromJSON(read_lines(res[["content"]]), flatten = TRUE) %>% .[['results']]
-    
     nxt_tkn <- fromJSON(read_lines(res[["content"]])) %>% .[['next']]
-    
     output_loop[[i]] <- list(df = out, nxt = nxt_tkn)
+    
     i <- i + 1
+    print(str_c("call_", i))
   }
   append(output_init, output_loop)
 }
