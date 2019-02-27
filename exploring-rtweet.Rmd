@@ -13,12 +13,10 @@ knitr::opts_chunk$set(
 options(width = 110)
 
 library(tidyverse)
-library(forcats)
 library(ggridges)
 library(infer)
 library(janitor)
 library(magick)
-library(patchwork)
 library(rtweet)
 library(here)
 ```
@@ -111,33 +109,25 @@ pull_tweets <- function(url,                 # 30-day search stem
              query = list(query = search, fromDate = start_date, toDate = stop_date),
              add_headers(Authorization = tkn))
   
-  out <- fromJSON(read_lines(res[["content"]]), flatten = TRUE) %>%
-    .[['results']] %>%
-    as_tibble() %>% 
-    select(created_at, id, place = place.full_name, country_code = place.country_code,
-           reply_to_status_id = in_reply_to_status_id, text)
+  out <- fromJSON(read_lines(res[["content"]]), flatten = TRUE) %>% .[['results']]
   
   nxt_tkn <- fromJSON(read_lines(res[["content"]])) %>% .[['next']]
   
   output_init <- list(list(df = out, nxt = nxt_tkn))
   print("initial_call")
   
-  # collect tweets until `next` token unavailable
+  # loop until max_req limit or `next` token unavailable
   i <- 1
   output_loop <- list()
   
-  while (!is.null(nxt_tkn) && i <= max_req - 1) {
+  while (!is.null(nxt_tkn) && i <= max_req) {
     print(str_c("loop", i))
-
+    
     res <- GET(thirty_url,
                query = list(query = search, fromDate = start_date, toDate = stop_date, `next` = nxt_tkn),
                add_headers(Authorization = tkn))
     
-    out <- fromJSON(read_lines(res[["content"]]), flatten = TRUE) %>%
-      .[['results']] %>%
-      as_tibble() %>% 
-      select(created_at, id, place = place.full_name, country_code = place.country_code,
-             reply_to_status_id = in_reply_to_status_id, text)
+    out <- fromJSON(read_lines(res[["content"]]), flatten = TRUE) %>% .[['results']]
     
     nxt_tkn <- fromJSON(read_lines(res[["content"]])) %>% .[['next']]
     
@@ -155,7 +145,7 @@ pull_tweets(url = "https://api.twitter.com/1.1/tweets/search/30day/",
             dev_env = <YOUR_DEV_ENV_NAME>,
             tkn = <YOUR_BEARER_TOKEN>,
             search = "to:SMASEY place_country:US",  # `place_country:GB` for UK tweets
-            max_req = 10)  # set a limit on number of requests
+            max_req = 10)                           # set a limit on number of requests
 ```
 
 Here we read in the data collected using `pull_tweets`; wrangle the output into a tidy dataframe; and, use some coarse `regex` to extract the answer which should be an integer between 1 and 8.
@@ -227,7 +217,7 @@ pval_chisq
 After generating a simulation-based null distribution of chi-squared statistics, we see that there is a `r str_c(round(pval_chisq * 100, 2), "%")` chance of observing a chi-squared value at least as large as `r round(pull(obs_chisq, stat), 1)` in a world where there's no difference between `country` and `ans`. So, we observe strong evidence in support of a significant association between location and how one draws an X.
 
 ### What about # 7 & 8 being particularly American?
-Well, we've see that there is some association with how an X is drawn and location, so let's be a bit more specific and tease apart this observation that 7 & 8 might be particularly American. To do this we will set up a dataframe with a collapsed factor variable for answers 7 & 8, take a peak at the proportions of answers 7 & 8 by location, and then test any observed difference in proportions across countries.
+Well, we've see that there is some association with how an X is drawn and location, so let's be a bit more specific and tease apart this observation that 7 & 8 might be particularly American. To do this we will set up a dataframe with a collapsed factor variable for answers 7 & 8, take a peek at the proportions of answers 7 & 8 by location, and then test any observed difference in proportions across countries.
 
 ```{r}
 # set up df
@@ -245,7 +235,7 @@ props_df %>%
   adorn_ns()
 ```
 
-We observe a difference of ~17 percentage points for answers 7 & 8 between US and UK responses. Let's employ the same `infer` workflow from before to implement a simulation-based test on this observed difference in proportions.
+We observe a difference of ~17 percentage points for answers # 7 & 8 between US and UK responses. Let's employ the same `infer` workflow from before to implement a simulation-based test on this observed difference in proportions.
 
 ```{r, out.width="75%", fig.align="center"}
 # for reproducibility
