@@ -82,7 +82,7 @@ pwalk(params, ~grab_flash(.x, .y, "ml-flashcard-images"))
 Trolling through [#rstats](https://twitter.com/hashtag/rstats) Twitter, I came across this tweet soliciting responses on how people draw an X:
 
 ```{r echo=FALSE, out.width="40%"}
-knitr::include_graphics("how-to-draw-x_data/how-to-draw-x_image.png")
+knitr::include_graphics("how-to-draw-x_image.png")
 ```
 
 Interestingly, @SMASEY observed that: "General consensus is that Americans do 7 & 8 while UK does 5 & 6. Probably how we were taught." Is that the case? Let's see what the data say.
@@ -147,7 +147,7 @@ pull_tweets(url = "https://api.twitter.com/1.1/tweets/search/30day/",
 
 Here we read in the data collected using `pull_tweets`; wrangle the output into a tidy dataframe; and, use some coarse `regex` to extract the answer which should be an integer between 1 and 8.
 
-```{r}
+```{r, cache=TRUE}
 tweets_df <- fs::dir_ls(here("how-to-draw-x_data"), glob = "*.rds") %>% 
   map(read_rds) %>%       # read in output files
   map_depth(2, "df") %>%  # grab df inside each nested list
